@@ -19,10 +19,36 @@ int radix_sort_cmp(unsigned int lhs, unsigned int rhs, size_t radix)
     return (int) lhs & mask - (int) rhs & mask;
 }
 
-void radix_sort_aux(unsigned int *arr, unsigned int beg, unsigned int end, size_t radix)
+/*@
+  requires \valid(lhs);
+  requires \valid(rhs);
+  assigns *lhs, *rhs;
+  ensures \at(*lhs, Pre) == *rhs && \at(*rhs, Pre) == *lhs;
+*/
+void swap(unsigned int *lhs, unsigned int *rhs){
+    unsigned int temp = *lhs;
+    *lhs = *rhs;
+    *rhs = temp;
+}
+
+void radix_sort_merge(unsigned int *arr, size_t beg, size_t end, size_t radix)
+{
+    if (end - beg <= 1) {
+        return;
+    }
+    if (end - beg == 2) {
+        if (radix_sort_cmp(arr[beg], arr[end], radix) < 0) {
+            swap(&arr[beg], &arr[end]);
+        }
+        return;
+    }
+    size_t mid = beg + (end - beg) / 2;
+}
+
+void radix_sort_aux(unsigned int *arr, size_t beg, size_t end, size_t radix)
 {
 }
 
-void radix_sort(unsigned int* arr, unsigned int beg, unsigned int end)
+void radix_sort(unsigned int* arr, size_t beg, size_t end)
 {
 }
