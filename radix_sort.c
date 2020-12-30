@@ -15,7 +15,7 @@
 */
 int radix_sort_cmp(unsigned int lhs, unsigned int rhs, size_t radix)
 {
-    unsigned int mask = 1<<radix;
+    unsigned int mask = (unsigned int) 1<<radix;
     return (int) lhs & mask - (int) rhs & mask;
 }
 
