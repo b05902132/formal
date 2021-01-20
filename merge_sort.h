@@ -11,6 +11,20 @@ extern int buf2[BUF_SIZE];
 extern size_t buf2_used;
 
 /*@
+  lemma shift_twice:
+    \forall int *p, integer i, j; *( (p + i) + j) == *(p + (i + j));
+*/
+
+/*@
+  predicate swapped{L1, L2}(int *p, int *q) =
+    \at(*p, L1) == \at(*q, L2) && \at(*p, L2) == \at(*q, L1);
+
+  predicate array_elem_swapped{L1, L2}(int *arr, integer len, integer p, integer q) =
+      0 <= p < len && 0 <= q < len && p != q && swapped{L1, L2}(arr + p, arr + q) &&
+      \forall integer i; 0 <= i < len && i != p && i != q ==> \at(arr[p], L1) == \at(arr[i], L2);
+*/
+
+/*@
   axiomatic count_elem_axiom{
     logic integer count_elem{L}(int elem, int *arr, integer e) reads arr[0..e-1];
     axiom empty : \forall int elem, int *arr, integer e; e <= 0 ==> count_elem(elem, arr, e) == 0;
@@ -27,10 +41,23 @@ extern size_t buf2_used;
     \forall integer i; 0 <= i < e ==> \at(arr1[i], L1) == \at(arr2[i], L2);
 
   lemma perm_eq{L1, L2}: \forall int *arr1, int *arr2, integer e;
-        same_array{L1, L2}(arr1, arr2, e) ==> permutation{L1, L2}(arr1, arr2, e);
+    same_array{L1, L2}(arr1, arr2, e) ==> permutation{L1, L2}(arr1, arr2, e);
 
-  predicate sorted{L}(int *arr, integer len) =
+  lemma perm_swap{L1, L2}: \forall int *arr1, integer e, p, q;
+    array_elem_swapped{L1, L2}(arr1, e, p, q) ==> permutation{L1, L2}(arr1, arr1, e);
+
+  lemma perm_trans{L1, L2, L3} : \forall int *arr1, int *arr2, int *arr3, integer e;
+    permutation{L1, L2}(arr1, arr2, e) && permutation{L2, L3}(arr2, arr3, e)
+    ==> permutation{L1, L3}(arr1, arr3, e);
+*/
+
+
+
+/*@
+  predicate sorted(int *arr, integer len) =
     \forall integer i, j; 0 <= i <= j < len  ==> arr[i] <= arr[j];
+  lemma adj_sorted: \forall int *arr, integer i, len;
+    (0 < i < len ==> arr[i-1] <= arr[i]) ==> sorted(arr, len);
 */
 
 
