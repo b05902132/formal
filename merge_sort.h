@@ -11,11 +11,6 @@ extern int buf2[BUF_SIZE];
 extern size_t buf2_used;
 
 /*@
-  lemma shift_twice:
-    \forall int *p, integer i, j; *( (p + i) + j) == *(p + (i + j));
-*/
-
-/*@
   predicate swapped{L1, L2}(int *p, int *q) =
     \at(*p, L1) == \at(*q, L2) && \at(*p, L2) == \at(*q, L1);
 
