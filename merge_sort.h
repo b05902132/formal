@@ -76,7 +76,7 @@ void merge(int *arr1, size_t len1, int *arr2, size_t len2, int *out);
   assigns buf1_used;
   assigns buf2_used;
   assigns arr[0 .. (len - 1)];
-  ensures permutation{Pre, Post}(arr, 0, len);
+  ensures permutation{Pre, Post}(arr, arr, len);
   ensures sorted(arr, len);
   ensures \at(buf1_used, Post) == \at(buf1_used, Pre);
   ensures \at(buf2_used, Post) == \at(buf2_used, Pre);
