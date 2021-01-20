@@ -1,5 +1,5 @@
 #include "merge_sort.h"
-void merge(int *arr1, size_t len1, int *arr2, size_t len2, int *out)
+void merge(const int *arr1, size_t len1, const int *arr2, size_t len2, int *out)
 {
     size_t i_1 = 0;
     size_t i_2 = 0;

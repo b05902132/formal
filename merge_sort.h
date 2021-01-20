@@ -90,7 +90,7 @@ extern size_t buf2_used;
   ensures sorted(out, len1 + len2);
   ensures count_combine(arr1, len1, arr2, len2, out);
 */
-void merge(int *arr1, size_t len1, int *arr2, size_t len2, int *out);
+void merge(const int *arr1, size_t len1, const int *arr2, size_t len2, int *out);
 
 /*@
   requires \valid(arr + (0 .. len - 1));
