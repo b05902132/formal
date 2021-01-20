@@ -41,17 +41,16 @@ static unsigned int * const buf_end = BUFFER + BUFFER_SIZE;
   predicate count_combine(int* a1, integer size1, int* a2, integer size2, int *out) =
     \forall int v; count_elem(v, a1, 0, size1) + count_elem(v, a2, 0, size2)
         == count_elem(v, out, 0, size1 + size2);
-  axiomatic merge_len_axiom{
-    logic integer merge_len(int *arr1, integer len1, int *arr2, integer len2) reads arr1[0..len1-1], arr2[0..len2-1];
-    axiom merge_empty : \forall int *arr1, *arr2, integer len; merge_len(arr1, 0, arr2, 0) == 0;
-    axiom left : \forall int *arr1, *arr2, integer len1, len2;
-        arr1[len1] > arr2[len2] ==>
-            merge_len(arr1, len1 + 1, arr2, len2) == merge_len(arr1, len1, arr2, len2) + 1;
-    axiom right : \forall int *arr1, *arr2, integer len1, len2;
-        arr1[len1] <= arr2[len2] ==>
-            merge_len(arr1, len1, arr2, len2 + 1) == merge_len(arr1, len1, arr2, len2) + 1;
+  lemma count_combine_append_1:
+    \forall int *a1, *a2, *out, integer size1, size2;
+        count_combine(a1, size1, a2, size2, out) && a1[size1] == out[size1 + size2]
+            ==> count_combine(a1, size1+1, a2, size2, out);
+  lemma count_combine_append_2:
+    \forall int *a1, *a2, *out, integer size1, size2;
+        count_combine(a1, size1, a2, size2, out) && a2[size2] == out[size1 + size2]
+            ==> count_combine(a1, size1, a2, size2+1, out);
 
-  }
+
 */
 
 //@ logic int min(int a, int b) = a <= b ? a : b;
