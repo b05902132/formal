@@ -51,8 +51,6 @@ extern size_t buf2_used;
 /*@
   predicate sorted(int *arr, integer len) =
     \forall integer i, j; 0 <= i <= j < len  ==> arr[i] <= arr[j];
-  lemma adj_sorted: \forall int *arr, integer i, len;
-    (0 < i < len ==> arr[i-1] <= arr[i]) ==> sorted(arr, len);
 */
 
 
@@ -61,14 +59,6 @@ extern size_t buf2_used;
   predicate count_combine(int* a1, integer size1, int* a2, integer size2, int *out) =
     \forall int v; count_elem(v, a1, size1) + count_elem(v, a2, size2)
         == count_elem(v, out, size1 + size2);
-  lemma count_combine_append_1:
-    \forall int *a1, *a2, *out, integer size1, size2;
-        count_combine(a1, size1, a2, size2, out) && a1[size1] == out[size1 + size2]
-            ==> count_combine(a1, size1+1, a2, size2, out);
-  lemma count_combine_append_2:
-    \forall int *a1, *a2, *out, integer size1, size2;
-        count_combine(a1, size1, a2, size2, out) && a2[size2] == out[size1 + size2]
-            ==> count_combine(a1, size1, a2, size2+1, out);
 
   lemma count_combine_id:
     \forall int *a1, integer len1, len2; count_combine(a1, len1, a1 + len1, len2, a1);

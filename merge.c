@@ -1,4 +1,18 @@
 #include "merge_sort.h"
+
+/*@
+  lemma adj_sorted: \forall int *arr, integer i, len;
+    (0 < i < len ==> arr[i-1] <= arr[i]) ==> sorted(arr, len);
+
+  lemma count_combine_append_1:
+    \forall int *a1, *a2, *out, integer size1, size2;
+        count_combine(a1, size1, a2, size2, out) && a1[size1] == out[size1 + size2]
+            ==> count_combine(a1, size1+1, a2, size2, out);
+  lemma count_combine_append_2:
+    \forall int *a1, *a2, *out, integer size1, size2;
+        count_combine(a1, size1, a2, size2, out) && a2[size2] == out[size1 + size2]
+            ==> count_combine(a1, size1, a2, size2+1, out);
+*/
 void merge(const int *arr1, size_t len1, const int *arr2, size_t len2, int *out)
 {
     size_t i_1 = 0;
