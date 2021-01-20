@@ -1,8 +1,12 @@
 #include <limits.h>
-#include <stddef.h>
 #include <stdint.h>
-#define MAX_LENGTH 2000
-#define BUFFER_SIZE  MAX_LENGTH * 3
+#include <stddef.h>
+#define LEN 10000
+#define BUF_SIZE LEN * 3
+static int buf1[BUF_SIZE];
+size_t buf1_used;
+static int buf2[BUF_SIZE];
+size_t buf2_used;
 
 /*@
   axiomatic count_elem_axiom{
@@ -141,18 +145,57 @@ void merge(int *arr1, size_t len1, int *arr2, size_t len2, int *out)
 }
 
 /*@
-  requires \valid(arr + (0..len-1));
-  requires \valid(buf + (0..buf_end - buf -1));
-  requires len <= MAX_LENGTH;
-  requires buf + len <= buf_end;
-  requires \separated ( (arr + (0..len-1)),
-                        (buf + (0..len-1)) );
+  requires \valid_read(arr1 + (0..len1-1));
+  requires \valid_read(arr2 + (0..len2-1));
+  requires \separated(out + (0 .. len1 + len2 - 1), arr1 + (0 .. len1 - 1));
+  requires \separated(out + (0 .. len1 + len2 - 1), arr2 + (0 .. len2 - 1));
+  requires len1 + len2 <= SIZE_MAX;
+  requires arr1_sorted: sorted(arr1, len1);
+  requires arr2_sorted: sorted(arr2, len2);
+  requires \valid(out + (0..len1 + len2 - 1));
+  assigns out[0..len1 + len2 - 1];
+  ensures sorted(out, len1 + len2);
+  ensures count_combine(arr1, len1, arr2, len2, out);
 */
-void merge_aux(unsigned int *arr, size_t len)
-{
-    unsigned int * const aux_buf = buf;
-    buf += len / 2;
-    merge_aux(aux_buf, len/2);
-    buf -= len/2;
+void merge2(int *arr1, size_t len1, int *arr2, size_t len2, int *out);
 
+/*@
+  requires \valid(arr + (0 .. len - 1));
+  requires \separated(arr + (0.. len - 1), (buf1 + (buf1_used .. buf1_used + len - 1)));
+  requires \separated(arr + (0.. len - 1), (buf2 + (buf2_used .. buf2_used + len * 2- 1)));
+  requires buf1_used + len <= BUF_SIZE;
+  requires buf2_used + len * 2<= BUF_SIZE;
+  assigns buf1[buf1_used .. buf1_used + len - 1];
+  assigns buf2[buf2_used .. buf2_used + len * 2 - 1];
+  assigns buf1_used;
+  assigns buf2_used;
+  assigns arr[0 .. (len - 1)];
+  ensures permutation{Pre, Post}(arr, arr, 0, len);
+  ensures sorted(arr, len);
+*/
+void merge_sort(int *arr, size_t len)
+{
+    if (len < 2) {
+        return;
+    }
+    if (len == 2) {
+    }
+    int *const local_buf1 = buf1 + buf1_used;
+    buf1_used += len/2;
+    arrcpy(local_buf1, arr, len/2);
+    int *const local_buf2 = buf2 + buf2_used;
+    buf2_used += (len - len/2);
+    arrcpy(local_buf2, arr + len/2, len - len/2);
+
+    //@ assert \forall integer i; 0 <= i < len/2 ==> arr[i] == local_buf1[i];
+    //@ assert \forall integer i; 0 <= i < len - len/2 ==> arr[len/2 + i] == local_buf2[i];
+
+    recur(local_buf1, len/2);
+    recur(local_buf2, len - len/2);
+
+    arrcpy(arr, local_buf1, len/2);
+    arrcpy(arr + len/2, local_buf2, len - len/2);
+
+    buf1_used -= len/2;
+    buf2_used -= len - len/2;
 }
