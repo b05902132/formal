@@ -74,6 +74,9 @@ extern size_t buf2_used;
     \forall int *a1, *a2, *out, integer size1, size2;
         count_combine(a1, size1, a2, size2, out) && a2[size2] == out[size1 + size2]
             ==> count_combine(a1, size1, a2, size2+1, out);
+
+  lemma count_combine_id:
+    \forall int *a1, integer len1, len2; count_combine(a1, len1, a1 + len1, len2, a1);
 */
 
 
