@@ -539,7 +539,7 @@ Axiom incl_int :
 
 Parameter L_count_elem:
   (addr -> Numbers.BinNums.Z) -> Numbers.BinNums.Z -> addr ->
-  Numbers.BinNums.Z -> Numbers.BinNums.Z -> Numbers.BinNums.Z.
+  Numbers.BinNums.Z -> Numbers.BinNums.Z.
 
 (* Why3 assumption *)
 Definition is_sint32_chunk (m:addr -> Numbers.BinNums.Z) : Prop :=
@@ -547,41 +547,48 @@ Definition is_sint32_chunk (m:addr -> Numbers.BinNums.Z) : Prop :=
 
 Axiom Q_empty :
   forall (Mint:addr -> Numbers.BinNums.Z) (elem:Numbers.BinNums.Z) (arr:addr)
-    (b:Numbers.BinNums.Z) (e:Numbers.BinNums.Z),
-  (e <= b)%Z -> is_sint32_chunk Mint -> is_sint32 elem ->
-  ((L_count_elem Mint elem arr b e) = 0%Z).
+    (e:Numbers.BinNums.Z),
+  (e <= 0%Z)%Z -> is_sint32_chunk Mint -> is_sint32 elem ->
+  ((L_count_elem Mint elem arr e) = 0%Z).
 
 Axiom Q_append_eq :
   forall (Mint:addr -> Numbers.BinNums.Z) (elem:Numbers.BinNums.Z) (arr:addr)
-    (b:Numbers.BinNums.Z) (e:Numbers.BinNums.Z),
+    (e:Numbers.BinNums.Z),
   let x := Mint (shift arr e) in
-  (x = elem) -> is_sint32_chunk Mint -> is_sint32 elem -> is_sint32 x ->
-  ((1%Z + (L_count_elem Mint elem arr b e))%Z =
-   (L_count_elem Mint elem arr b (1%Z + e)%Z)).
+  (x = elem) -> (0%Z <= e)%Z -> is_sint32_chunk Mint -> is_sint32 elem ->
+  is_sint32 x ->
+  ((1%Z + (L_count_elem Mint elem arr e))%Z =
+   (L_count_elem Mint elem arr (1%Z + e)%Z)).
 
 Axiom Q_append_neq :
   forall (Mint:addr -> Numbers.BinNums.Z) (elem:Numbers.BinNums.Z) (arr:addr)
-    (b:Numbers.BinNums.Z) (e:Numbers.BinNums.Z),
+    (e:Numbers.BinNums.Z),
   let x := Mint (shift arr e) in
-  ~ (x = elem) -> is_sint32_chunk Mint -> is_sint32 elem -> is_sint32 x ->
-  ((L_count_elem Mint elem arr b (1%Z + e)%Z) =
-   (L_count_elem Mint elem arr b e)).
+  ~ (x = elem) -> (0%Z <= e)%Z -> is_sint32_chunk Mint -> is_sint32 elem ->
+  is_sint32 x ->
+  ((L_count_elem Mint elem arr (1%Z + e)%Z) = (L_count_elem Mint elem arr e)).
 
 (* Why3 assumption *)
 Definition P_count_combine (Mint:addr -> Numbers.BinNums.Z) (a1:addr)
     (size1:Numbers.BinNums.Z) (a2:addr) (size2:Numbers.BinNums.Z)
     (out:addr) : Prop :=
   forall (i:Numbers.BinNums.Z), is_sint32 i ->
-  (((L_count_elem Mint i a1 0%Z size1) +
-    (L_count_elem Mint i a2 0%Z size2))%Z
-   = (L_count_elem Mint i out 0%Z (size1 + size2)%Z)).
+  (((L_count_elem Mint i a1 size1) + (L_count_elem Mint i a2 size2))%Z =
+   (L_count_elem Mint i out (size1 + size2)%Z)).
 
 (* Why3 assumption *)
 Definition P_permutation (Mint:addr -> Numbers.BinNums.Z)
     (Mint1:addr -> Numbers.BinNums.Z) (arr1:addr) (arr2:addr)
-    (b:Numbers.BinNums.Z) (e:Numbers.BinNums.Z) : Prop :=
+    (e:Numbers.BinNums.Z) : Prop :=
   forall (i:Numbers.BinNums.Z), is_sint32 i ->
-  ((L_count_elem Mint1 i arr1 b e) = (L_count_elem Mint i arr2 b e)).
+  ((L_count_elem Mint1 i arr1 e) = (L_count_elem Mint i arr2 e)).
+
+(* Why3 assumption *)
+Definition P_same_array (Mint:addr -> Numbers.BinNums.Z)
+    (Mint1:addr -> Numbers.BinNums.Z) (arr1:addr) (arr2:addr)
+    (e:Numbers.BinNums.Z) : Prop :=
+  forall (i:Numbers.BinNums.Z), (0%Z <= i)%Z -> (i < e)%Z ->
+  ((Mint1 (shift arr1 i)) = (Mint (shift arr2 i))).
 
 (* Why3 assumption *)
 Definition P_sorted (Mint:addr -> Numbers.BinNums.Z) (arr:addr)
@@ -589,20 +596,6 @@ Definition P_sorted (Mint:addr -> Numbers.BinNums.Z) (arr:addr)
   forall (i:Numbers.BinNums.Z) (i1:Numbers.BinNums.Z), (0%Z <= i)%Z ->
   (i <= i1)%Z -> (i1 < len)%Z ->
   ((Mint (shift arr i)) <= (Mint (shift arr i1)))%Z.
-
-(* Why3 assumption *)
-Definition P_unchanged (Mint:addr -> Numbers.BinNums.Z)
-    (Mint1:addr -> Numbers.BinNums.Z) (arr:addr) (b:Numbers.BinNums.Z)
-    (e:Numbers.BinNums.Z) : Prop :=
-  forall (i:Numbers.BinNums.Z),
-  let a := shift arr i in (b <= i)%Z -> (i < e)%Z -> ((Mint1 a) = (Mint a)).
-
-(* Why3 assumption *)
-Definition P_count_unchanged (Mint:addr -> Numbers.BinNums.Z)
-    (Mint1:addr -> Numbers.BinNums.Z) (arr:addr) (b:Numbers.BinNums.Z)
-    (e:Numbers.BinNums.Z) : Prop :=
-  forall (i:Numbers.BinNums.Z), is_sint32 i ->
-  ((L_count_elem Mint1 i arr b e) = (L_count_elem Mint i arr b e)).
 
 Axiom Q_count_combine_append_1 :
   forall (Mint:addr -> Numbers.BinNums.Z) (a1:addr) (a2:addr) (out:addr)
@@ -624,37 +617,9 @@ Axiom Q_count_combine_append_2 :
 
 Axiom Q_perm_eq :
   forall (Mint:addr -> Numbers.BinNums.Z) (Mint1:addr -> Numbers.BinNums.Z)
-    (arr1:addr) (arr2:addr) (b:Numbers.BinNums.Z) (e:Numbers.BinNums.Z),
+    (arr1:addr) (arr2:addr) (e:Numbers.BinNums.Z),
   is_sint32_chunk Mint -> is_sint32_chunk Mint1 ->
-  (forall (i:Numbers.BinNums.Z), (b <= i)%Z -> (i < e)%Z ->
-   ((Mint1 (shift arr1 i)) = (Mint (shift arr2 i)))) ->
-  P_permutation Mint Mint1 arr1 arr2 b e.
-
-Axiom Q_sorted_all :
-  forall (Mint:addr -> Numbers.BinNums.Z) (arr:addr) (len:Numbers.BinNums.Z),
-  is_sint32_chunk Mint -> P_sorted Mint arr len ->
-  forall (i:Numbers.BinNums.Z) (i1:Numbers.BinNums.Z), (i1 < len)%Z ->
-  (i <= i1)%Z -> (0%Z <= i)%Z ->
-  ((Mint (shift arr i)) <= (Mint (shift arr i1)))%Z.
-
-Axiom Q_sorted_append :
-  forall (Mint:addr -> Numbers.BinNums.Z) (arr:addr) (len:Numbers.BinNums.Z),
-  let x := Mint (shift arr ((-1%Z)%Z + len)%Z) in
-  let x1 := Mint (shift arr len) in
-  (x <= x1)%Z -> is_sint32_chunk Mint -> P_sorted Mint arr len ->
-  is_sint32 x1 -> is_sint32 x -> P_sorted Mint arr (1%Z + len)%Z.
-
-Axiom Q_unchange_sorted :
-  forall (Mint:addr -> Numbers.BinNums.Z) (Mint1:addr -> Numbers.BinNums.Z)
-    (arr:addr) (len:Numbers.BinNums.Z),
-  is_sint32_chunk Mint -> is_sint32_chunk Mint1 -> P_sorted Mint1 arr len ->
-  P_unchanged Mint Mint1 arr 0%Z len -> P_sorted Mint arr len.
-
-Axiom Q_unchanged_same_count :
-  forall (Mint:addr -> Numbers.BinNums.Z) (Mint1:addr -> Numbers.BinNums.Z)
-    (arr:addr) (b:Numbers.BinNums.Z) (e:Numbers.BinNums.Z),
-  is_sint32_chunk Mint -> is_sint32_chunk Mint1 ->
-  P_unchanged Mint Mint1 arr b e -> P_count_unchanged Mint Mint1 arr b e.
+  P_same_array Mint Mint1 arr1 arr2 e -> P_permutation Mint Mint1 arr1 arr2 e.
 
 (* Equality between addr's are decidable. *)
 
@@ -698,15 +663,19 @@ Theorem wp_goal :
   valid_rw t a3 x3 -> valid_rw t a11 1%Z -> separated a3 x3 a9 i3 ->
   separated a3 x3 a10 i2 -> is_sint32_chunk a4 -> valid_rd t a5 1%Z ->
   is_sint32 a8 -> is_sint32 a6 -> is_sint32_chunk a12 -> P_sorted a4 a2 i1 ->
-  P_count_combine a4 a x2 a1 i a2 -> P_unchanged a12 a4 a2 0%Z i1 ->
-  P_unchanged a12 a4 a1 0%Z i -> P_unchanged a12 a4 a 0%Z x2 ->
-  P_count_unchanged a12 a4 a2 0%Z i1 -> P_count_unchanged a12 a4 a1 0%Z i ->
-  P_count_unchanged a12 a4 a 0%Z x2 ->
+  P_count_combine a4 a x2 a1 i a2 -> P_permutation a12 a4 a2 a2 i1 ->
+  P_permutation a12 a4 a1 a1 i -> P_permutation a12 a4 a a x2 ->
+  P_same_array a12 a4 a2 a2 i1 -> P_same_array a12 a4 a1 a1 i ->
+  P_same_array a12 a4 a a x2 ->
   (forall (i4:Numbers.BinNums.Z), (0%Z <= i4)%Z -> (i4 < i1)%Z ->
    ((a4 (shift a2 i4)) <= a8)%Z) ->
   (forall (i4:Numbers.BinNums.Z), (0%Z <= i4)%Z -> (i4 < i1)%Z ->
    ((a4 (shift a2 i4)) <= a6)%Z) ->
   P_count_combine a12 a ((1%Z + i1)%Z + x1)%Z a1 i a2.
+(* Why3 intros t t1 t2 a a1 i i1 i2 i3 a2 x a3 a4 x1 x2 a5 a6 a7 a8 x3 a9 a10
+        a11 a12 h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17
+        h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33 h34
+        h35 h36 h37 h38 h39 h40 h41 h42. *)
 Proof.
 (* I wrote the prove script of loop1_append_i2 first.
    This script is a modified version of that script.
@@ -731,13 +700,14 @@ rename x2 into i_1;
 rename i1 into i_out;
 replace (1 + i_out +x1) with (1 + i_1) by lia.
 (* Goal_last_iter is something with type
-   P_count_combine a4 arr_1 i_1 arr_2 i_2 out. *)
+   P_count_combine mem arr_1 i_1 arr_2 i_2 out. *)
 rename H32 into goal_last_iter.
-(* The type of foo_unchanged is P_count_unchanged mem' mem foo 0 _ *)
 rename a4 into mem.
-rename H36 into out_unchanged.
-rename H37 into arr_2_unchanged.
-rename H38 into arr_1_unchanged.
+(* The type of foo_unchanged is P_Permutation mem' mem foo 0 _ *)
+
+rename H33 into out_unchanged.
+rename H34 into arr_2_unchanged.
+rename H35 into arr_1_unchanged.
 (* mem' is mem after assignment.
    I can't come out with some meaningful name,
    so why not let mem' be  "Map.set mem xx yy?" *)
@@ -751,14 +721,14 @@ apply Q_count_combine_append_1;
 unfold P_count_combine in *;
 replace (i_1 + i_2) with i_out in * by lia; trivial.
 - (* Applying Q_count_conbine_append_2 requires a proof of
-     mem' arr_2 i_2 == mem' arr_out i_out, which somehow isn't proved by the prover *)
+     mem' arr_1 i_1 == mem' arr_out i_out, which somehow isn't proved by the prover *)
   subst mem'.
   subst xx.
   subst yy.
   subst zz.
   (* For all f g such that g = Map.set f a b, g x = (if x = a then b else f a) *)
   (* Therefore following replacement is valid as long as
-     equality of (shift out i_out) (shift arr_2 i_2) is decidable, which it is. *)
+     equality of (shift out i_out) (shift arr_1 i_1) is decidable, which it is. *)
 
   replace (Map.set mem (shift out i_out) (mem (shift arr_1 i_1)) (shift arr_1 i_1))
     with (mem (shift arr_1 i_1)).

@@ -25,12 +25,12 @@ void merge(int *arr1, size_t len1, int *arr2, size_t len2, int *out)
              * hence the assertions about count_unchanged.
              * However, they cannot be autoproved without the first 3 assertions...
              */
-            //@ assert unchanged{LoopCurrent, Here}(arr1, 0, i_1);
-            //@ assert unchanged{LoopCurrent, Here}(arr2, 0, i_2);
-            //@ assert unchanged{LoopCurrent, Here}(out, 0, i_1 + i_2);
-            //@ assert count_unchanged{LoopCurrent, Here}(arr1, 0, i_1);
-            //@ assert count_unchanged{LoopCurrent, Here}(arr2, 0, i_2);
-            //@ assert count_unchanged{LoopCurrent, Here}(out, 0, i_1 + i_2);
+            //@ assert same_array{LoopCurrent, Here}(arr1, arr1, i_1);
+            //@ assert same_array{LoopCurrent, Here}(arr2, arr2, i_2);
+            //@ assert same_array{LoopCurrent, Here}(out, out, i_1 + i_2);
+            //@ assert permutation{LoopCurrent, Here}(arr1, arr1, i_1);
+            //@ assert permutation{LoopCurrent, Here}(arr2, arr2, i_2);
+            //@ assert permutation{LoopCurrent, Here}(out, out, i_out);
             //@ assert loop1_append_i2: count_combine(arr1, i_1, arr2, i_2+1, out);
             i_2 += 1;
             i_out += 1;
@@ -38,12 +38,12 @@ void merge(int *arr1, size_t len1, int *arr2, size_t len2, int *out)
             //@ assert sorted(out, i_1 + i_2 - 1);
         } else {
             out[i_out] = arr1[i_1];
-            //@ assert unchanged{LoopCurrent, Here}(arr1, 0, i_1);
-            //@ assert unchanged{LoopCurrent, Here}(arr2, 0, i_2);
-            //@ assert unchanged{LoopCurrent, Here}(out, 0, i_1 + i_2);
-            //@ assert count_unchanged{LoopCurrent, Here}(arr1, 0, i_1);
-            //@ assert count_unchanged{LoopCurrent, Here}(arr2, 0, i_2);
-            //@ assert count_unchanged{LoopCurrent, Here}(out, 0, i_1 + i_2);
+            //@ assert same_array{LoopCurrent, Here}(arr1, arr1, i_1);
+            //@ assert same_array{LoopCurrent, Here}(arr2, arr2, i_2);
+            //@ assert same_array{LoopCurrent, Here}(out, out, i_1 + i_2);
+            //@ assert permutation{LoopCurrent, Here}(arr1, arr1, i_1);
+            //@ assert permutation{LoopCurrent, Here}(arr2, arr2, i_2);
+            //@ assert permutation{LoopCurrent, Here}(out, out, i_out);
             //@ assert loop1_append_i1: count_combine(arr1, i_1+1, arr2, i_2, out);
             i_1 += 1;
             i_out += 1;

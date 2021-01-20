@@ -19,7 +19,7 @@ void merge_sort(int *arr, size_t len)
             arr[0] = arr[1];
             arr[1] = tmp;
         }
-        //@ assert permutation{Pre, Here}(arr, arr, 0, len);
+        //@ assert permutation{Pre, Here}(arr, arr, len);
         //@ assert sorted(arr, len);
     }
     int *const local_buf1 = buf1 + buf1_used;
@@ -36,10 +36,10 @@ void merge_sort(int *arr, size_t len)
 
     merge_sort(local_buf1, len/2);
     //@ assert sorted(local_buf1, len/2);
-    //@ assert count_unchanged{before_recursion, Here}(local_buf1, 0, len/2);
+    //@ assert permutation{before_recursion, Here}(local_buf1, local_buf1, len/2);
     merge_sort(local_buf2, len - len/2);
     //@ assert sorted(local_buf2, len - len/2);
-    //@ assert count_unchanged{before_recursion, Here}(local_buf2, 0, len - len/2);
+    //@ assert permutation{before_recursion, Here}(local_buf2, local_buf2, len - len/2);
 
     merge(local_buf1, len/2, local_buf2, len - len/2, arr);
 

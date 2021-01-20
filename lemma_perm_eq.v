@@ -541,82 +541,90 @@ Axiom incl_int :
 Definition is_sint32_chunk (m:addr -> Numbers.BinNums.Z) : Prop :=
   forall (a:addr), is_sint32 (m a).
 
+(* Why3 assumption *)
+Definition P_same_array (Mint:addr -> Numbers.BinNums.Z)
+    (Mint1:addr -> Numbers.BinNums.Z) (arr1:addr) (arr2:addr)
+    (e:Numbers.BinNums.Z) : Prop :=
+  forall (i:Numbers.BinNums.Z), (0%Z <= i)%Z -> (i < e)%Z ->
+  ((Mint1 (shift arr1 i)) = (Mint (shift arr2 i))).
+
 Parameter L_count_elem:
   (addr -> Numbers.BinNums.Z) -> Numbers.BinNums.Z -> addr ->
-  Numbers.BinNums.Z -> Numbers.BinNums.Z -> Numbers.BinNums.Z.
+  Numbers.BinNums.Z -> Numbers.BinNums.Z.
 
 Axiom Q_empty :
   forall (Mint:addr -> Numbers.BinNums.Z) (elem:Numbers.BinNums.Z) (arr:addr)
-    (b:Numbers.BinNums.Z) (e:Numbers.BinNums.Z),
-  (e <= b)%Z -> is_sint32_chunk Mint -> is_sint32 elem ->
-  ((L_count_elem Mint elem arr b e) = 0%Z).
+    (e:Numbers.BinNums.Z),
+  (e <= 0%Z)%Z -> is_sint32_chunk Mint -> is_sint32 elem ->
+  ((L_count_elem Mint elem arr e) = 0%Z).
 
 Axiom Q_append_eq :
   forall (Mint:addr -> Numbers.BinNums.Z) (elem:Numbers.BinNums.Z) (arr:addr)
-    (b:Numbers.BinNums.Z) (e:Numbers.BinNums.Z),
+    (e:Numbers.BinNums.Z),
   let x := Mint (shift arr e) in
-  (x = elem) -> is_sint32_chunk Mint -> is_sint32 elem -> is_sint32 x ->
-  ((1%Z + (L_count_elem Mint elem arr b e))%Z =
-   (L_count_elem Mint elem arr b (1%Z + e)%Z)).
+  (x = elem) -> (0%Z <= e)%Z -> is_sint32_chunk Mint -> is_sint32 elem ->
+  is_sint32 x ->
+  ((1%Z + (L_count_elem Mint elem arr e))%Z =
+   (L_count_elem Mint elem arr (1%Z + e)%Z)).
 
 Axiom Q_append_neq :
   forall (Mint:addr -> Numbers.BinNums.Z) (elem:Numbers.BinNums.Z) (arr:addr)
-    (b:Numbers.BinNums.Z) (e:Numbers.BinNums.Z),
+    (e:Numbers.BinNums.Z),
   let x := Mint (shift arr e) in
-  ~ (x = elem) -> is_sint32_chunk Mint -> is_sint32 elem -> is_sint32 x ->
-  ((L_count_elem Mint elem arr b (1%Z + e)%Z) =
-   (L_count_elem Mint elem arr b e)).
+  ~ (x = elem) -> (0%Z <= e)%Z -> is_sint32_chunk Mint -> is_sint32 elem ->
+  is_sint32 x ->
+  ((L_count_elem Mint elem arr (1%Z + e)%Z) = (L_count_elem Mint elem arr e)).
 
 (* Why3 assumption *)
 Definition P_permutation (Mint:addr -> Numbers.BinNums.Z)
     (Mint1:addr -> Numbers.BinNums.Z) (arr1:addr) (arr2:addr)
-    (b:Numbers.BinNums.Z) (e:Numbers.BinNums.Z) : Prop :=
+    (e:Numbers.BinNums.Z) : Prop :=
   forall (i:Numbers.BinNums.Z), is_sint32 i ->
-  ((L_count_elem Mint1 i arr1 b e) = (L_count_elem Mint i arr2 b e)).
+  ((L_count_elem Mint1 i arr1 e) = (L_count_elem Mint i arr2 e)).
 
 (* Why3 goal *)
 Theorem wp_goal :
   forall (t:addr -> Numbers.BinNums.Z) (t1:addr -> Numbers.BinNums.Z)
-    (a:addr) (a1:addr) (i:Numbers.BinNums.Z) (i1:Numbers.BinNums.Z),
-  is_sint32_chunk t1 -> is_sint32_chunk t ->
-  (forall (i2:Numbers.BinNums.Z), (i2 < i1)%Z -> (i <= i2)%Z ->
-   ((t1 (shift a i2)) = (t (shift a1 i2)))) ->
-  P_permutation t t1 a a1 i i1.
-(* Why3 intros t t1 a a1 i i1 h1 h2 h3. *)
+    (a:addr) (a1:addr) (i:Numbers.BinNums.Z),
+  is_sint32_chunk t1 -> is_sint32_chunk t -> P_same_array t t1 a a1 i ->
+  P_permutation t t1 a a1 i.
+(* Why3 intros t t1 a a1 i h1 h2 h3. *)
 Proof.
 Open Scope Z_scope.
 Require Import Lia.
-intros M1 M2 arr2 arr1 b e.
-remember (e - b) as sz eqn:E.
-replace e with (b + sz) in * by lia; clear e E.
-intros M1sint32 M2sint32 H.
+intros M2 M1 arr1 arr2 sz M1_int32 M2_int32 H.
+intros elem elem_int.
 
 (* case analysis on 0 <= sz *)
 destruct (Z_le_dec 0 sz).
 - (* case 0 <= sz. *)
   generalize dependent H.
   generalize dependent sz.
-  apply (natlike_ind (fun sz => (forall i2 : int, i2 < b + sz -> b <= i2 -> M2 (shift arr2 i2) = M1 (shift arr1 i2)) ->
-P_permutation M1 M2 arr2 arr1 b (b + sz))). 
+  apply (natlike_ind (fun sz => P_same_array M2 M1 arr1 arr2 sz ->
+L_count_elem M1 elem arr1 sz = L_count_elem M2 elem arr2 sz)).
   + (* 0 == sz *)
     unfold P_permutation; intros.
     repeat (rewrite Q_empty; trivial; try lia).
   + (* 0 < sz *)
     intros sz sz_ge_0.
-    replace (b + Z.succ sz) with (1 + (b + sz)) by lia.
-    intros H1 H2.
-    unfold P_permutation; intros.
-    destruct (Z.eq_dec (M1 (shift arr1 (b + sz))) i).
-    * (* arr[b + sz] == i *)
-      repeat (rewrite <- Q_append_eq; trivial).
-      -- f_equal.
-         apply H1; trivial.
-         intros. apply H2; try lia.
-      -- rewrite H2; try lia.
-    * repeat (rewrite Q_append_neq; trivial).
-      -- apply H1; trivial. intros; apply H2; try lia.
-      -- rewrite H2; try lia.
-- unfold P_permutation.
-  intros. repeat (rewrite Q_empty; trivial; try lia).
+    replace (Z.succ sz) with (1 + sz) by lia.
+    intros IH H.
+    assert (M1 (shift arr1 sz) = M2 (shift arr2 sz)).
+    { apply H; lia. }
+    assert (same_subarray: P_same_array M2 M1 arr1 arr2 sz).
+    { repeat intro. apply H; lia. }
+    (* case analysis on equality. *)
+    destruct (Z.eq_dec (M1 (shift arr1 sz)) elem).
+    
+    * (* equals *)
+      subst elem.
+      repeat (rewrite <- Q_append_eq; auto).
+      f_equal.
+      apply IH.
+      assumption.
+    * repeat rewrite Q_append_neq; trivial.
+      -- apply IH. assumption.
+      -- rewrite <- H0. assumption.
+- intros. repeat (rewrite Q_empty; trivial; try lia).
 Qed.
 
