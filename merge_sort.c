@@ -18,30 +18,41 @@ void merge_sort(int *arr, size_t len)
             int tmp = arr[0];
             arr[0] = arr[1];
             arr[1] = tmp;
+            //@ assert array_elem_swapped{Pre, Here}(arr, 2, 0, 1);
         }
         //@ assert permutation{Pre, Here}(arr, arr, len);
         //@ assert sorted(arr, len);
+        return;
     }
-    int *const local_buf1 = buf1 + buf1_used;
-    buf1_used += len/2;
-    arrcpy(local_buf1, arr, len/2);
-    int *const local_buf2 = buf2 + buf2_used;
-    buf2_used += (len - len/2);
-    arrcpy(local_buf2, arr + len/2, len - len/2);
+    /* The following aux definitions help provers realize that the type of len/2 is size_t. */
+    int *const left_arr = arr;
+    int *const right_arr = arr + len/2;
+    const size_t left_len = len / 2;
+    const size_t right_len = len - len / 2;
+    /* End aux definitions */
+    int *const local_buf_left = buf1 + buf1_used;
+    buf1_used += left_len;
+    arrcpy(local_buf_left, arr, left_len);
+    int *const local_buf_right = buf2 + buf2_used;
+    buf2_used += right_len;
+    arrcpy(local_buf_right, right_arr, right_len);
 
-    //@ assert \forall integer i; 0 <= i < len/2 ==> arr[i] == local_buf1[i];
-    //@ assert \forall integer i; 0 <= i < len - len/2 ==> arr[len/2 + i] == local_buf2[i];
+    //@ assert same_array{Here, Here}(left_arr, local_buf_left, left_len);
+    //@ assert double_shift : same_array{Here, Here}(right_arr, local_buf_right, right_len);
+    //@ assert permutation{Here, Here}(left_arr, local_buf_left, left_len);
+    //@ assert permutation{Here, Here}(right_arr, local_buf_right, right_len);
 
-    //@ ghost before_recursion: ;
 
-    merge_sort(local_buf1, len/2);
-    //@ assert sorted(local_buf1, len/2);
-    //@ assert permutation{before_recursion, Here}(local_buf1, local_buf1, len/2);
-    merge_sort(local_buf2, len - len/2);
-    //@ assert sorted(local_buf2, len - len/2);
-    //@ assert permutation{before_recursion, Here}(local_buf2, local_buf2, len - len/2);
+    merge_sort(local_buf_left, left_len);
+    //@ ghost before_recursion2: ;
+    merge_sort(local_buf_right, right_len);
+    //@ assert same_array{before_recursion2, Here}(local_buf_left, local_buf_left, left_len);
+    //@ assert sorted(local_buf_left, left_len);
+    //@ assert sorted(local_buf_right, right_len);
+    //@ assert permutation{before_recursion2, Here}(local_buf_right, local_buf_right, right_len);
 
-    merge(local_buf1, len/2, local_buf2, len - len/2, arr);
+    merge(local_buf_left, left_len, local_buf_right, right_len, arr);
+    //@ assert permutation{Pre, Here}(arr, arr, len);
 
     buf1_used -= len/2;
     buf2_used -= len - len/2;
