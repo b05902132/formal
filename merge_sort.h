@@ -62,7 +62,8 @@ extern size_t buf2_used;
         == count_elem(v, out, size1 + size2);
 
   lemma count_combine_id:
-    \forall int *a1, integer len1, len2; count_combine(a1, len1, a1 + len1, len2, a1);
+    \forall int *a1, integer len1, len2;
+      len1 >= 0 && len2 >= 0 ==>count_combine(a1, len1, a1 + len1, len2, a1);
 */
 
 
