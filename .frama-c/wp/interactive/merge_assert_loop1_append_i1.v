@@ -727,14 +727,15 @@ intros **.
 
 (* Rename until the goal looks like
     P_count_combine mem' arr1 (1 + i_1) arr2 i_2 out. *)
-rename a13 into mem';
-rename a into arr_1;
-rename a1 into arr_2;
+rename a13 into mem'.
+rename a into arr_1.
+rename a1 into arr_2.
 rename a2 into out.
-rename i into i_2;
-rename x2 into i_1;
-rename i1 into i_out;
-replace (1 + i_out +x1) with (1 + i_1) by lia.
+rename i into i_2.
+subst x1.
+rename i1 into i_out.
+rename x2 into i_1.
+replace (1 + i_out + - (1) * i_2) with (1 + i_1) by lia.
 (* Goal_last_iter is something with type
    P_count_combine mem arr_1 i_1 arr_2 i_2 out. *)
 rename H38 into goal_last_iter.

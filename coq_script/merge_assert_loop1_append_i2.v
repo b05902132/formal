@@ -696,21 +696,20 @@ Theorem wp_goal :
   (a6 < a8)%Z -> (x2 <= 4294967295%Z)%Z -> is_sint32_chunk t1 -> linked t ->
   is_uint32 i3 -> is_uint32 i2 -> is_uint32 i1 -> is_uint32 i ->
   P_sorted t1 a1 i3 -> P_sorted t1 a i2 -> is_uint32 x1 ->
-  is_sint32 (t1 (shift a2 (-1%Z)%Z)) -> is_sint32 (t1 a9) ->
-  is_sint32 (t1 a10) -> valid_rd t a9 i3 -> valid_rd t a5 1%Z ->
-  valid_rd t a10 i2 -> valid_rw t a3 x2 -> valid_rw t a11 1%Z ->
-  separated a3 x2 a9 i3 -> separated a3 x2 a10 i2 -> is_sint32_chunk a4 ->
-  valid_rd t a7 1%Z -> is_sint32 a6 -> is_sint32 a12 -> is_sint32 a8 ->
-  is_sint32_chunk a13 -> P_sorted a4 a2 i1 -> is_sint32 (a13 a7) ->
-  P_sorted a13 a2 (1%Z + i1)%Z -> P_count_combine a4 a x1 a1 i a2 ->
-  P_same_array a13 a4 a2 a2 i1 -> P_same_array a13 a4 a1 a1 i ->
-  P_same_array a13 a4 a a x1 -> ((0%Z < i1)%Z -> (a12 <= a6)%Z) ->
-  ((2%Z <= i1)%Z -> (a12 <= a6)%Z) -> ((0%Z < i1)%Z -> (a12 <= a8)%Z) ->
+  valid_rd t a9 i3 -> valid_rd t a5 1%Z -> valid_rd t a10 i2 ->
+  valid_rw t a3 x2 -> valid_rw t a11 1%Z -> separated a3 x2 a9 i3 ->
+  separated a3 x2 a10 i2 -> is_sint32_chunk a4 -> valid_rd t a7 1%Z ->
+  is_sint32 a6 -> is_sint32 a12 -> is_sint32 a8 -> is_sint32_chunk a13 ->
+  P_sorted a4 a2 i1 -> P_sorted a13 a2 (1%Z + i1)%Z ->
+  P_count_combine a4 a x1 a1 i a2 -> P_same_array a13 a4 a2 a2 i1 ->
+  P_same_array a13 a4 a1 a1 i -> P_same_array a13 a4 a a x1 ->
+  ((0%Z < i1)%Z -> (a12 <= a6)%Z) -> ((2%Z <= i1)%Z -> (a12 <= a6)%Z) ->
+  ((0%Z < i1)%Z -> (a12 <= a8)%Z) ->
   P_count_combine a13 a x1 a1 (1%Z + i)%Z a2.
 (* Why3 intros t t1 t2 a a1 i i1 i2 i3 a2 x a3 a4 a5 a6 x1 a7 a8 x2 a9 a10
         a11 a12 a13 h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16
         h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h31 h32 h33
-        h34 h35 h36 h37 h38 h39 h40 h41 h42 h43 h44 h45 h46. *)
+        h34 h35 h36 h37 h38 h39 h40 h41 h42. *)
 Proof.
 Open Scope Z_scope.
 Require Import Lia.
@@ -728,12 +727,12 @@ rename i into i_2;
 rename a2 into out.
 (* Goal_last_iter is something with type
    P_count_combine a4 arr_1 i_1 arr_2 i_2 out. *)
-rename H38 into goal_last_iter.
+rename H34 into goal_last_iter.
 (* The type of foo_unchanged is P_permutation mem' mem foo 0 _ *)
 rename a4 into mem.
-rename H39 into out_unchanged.
-rename H40 into arr_2_unchanged.
-rename H41 into arr_1_unchanged.
+rename H35 into out_unchanged.
+rename H36 into arr_2_unchanged.
+rename H37 into arr_1_unchanged.
 (* mem' is mem after assignment.
    I can't come out with some meaningful name,
    so why not let mem' be  "Map.set mem xx yy?" *)

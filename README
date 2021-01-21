@@ -7,8 +7,9 @@ function的precondition跟postcondition都放在merge_sort.h。
 證明時有使用到Coq，使用的script放在/coq_script中，檔名跟assertion的名字一致。
 為了方便起見，這些script我也放在/.frama_c裡面，wp會自己到這個資料夾找coq的script。
 
-證明時請使用-wp -wp-rte -wp-prover=coq,alt-ergo -wp-timeout=20。
-在證明某些變數沒有改變時花的時間異常地久，請稍候。
+證明時請使用-wp -wp-rte -wp-prover=coq,alt-ergo -wp-timeout=300，
+而且請一次只證明一個檔案。
+證明某些變數沒有改變時花的時間異常地久，請稍候。
 
 
 Coq的證明大多有寫註解，難懂的證明會寫的比較詳細。
@@ -25,14 +26,21 @@ Coq的證明大多有寫註解，難懂的證明會寫的比較詳細。
 
 
 
-
 證明進度：
    merge_sort完全證明完畢。
-   merge證明了兩陣列均不為空的時的第一個大迴圈。
-   此迴圈的invariant與function的postcondition一致。
+   
+  merge的部分沒辦法證明只有Assign到Out，儘管函式內動到的變數只有這個不是Global
+  ariable。
 
+  merge還有另外一個無法證明的assertion，loop1_append_i1_loop2，證明這個需要用到
+  記憶體的一些性質，超出我的能力範圍。(神奇的是證明另一個對應的迴圈卻不用。)
 
+  
 
 使用的工具版本：
+why3 1.3.3
+frama-c 22.0
+coq 8.12.2
+alt-ergo 2.3.3
 
 
