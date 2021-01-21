@@ -16,7 +16,7 @@ extern size_t buf2_used;
 
   predicate array_elem_swapped{L1, L2}(int *arr, integer len, integer p, integer q) =
       0 <= p < q < len && swapped{L1, L2}(arr + p, arr + q) &&
-      \forall integer i; 0 <= i < len && i != p && i != q ==> \at(arr[p], L1) == \at(arr[i], L2);
+      \forall integer i; 0 <= i < len && i != p && i != q ==> \at(arr[i], L1) == \at(arr[i], L2);
 */
 
 /*@
