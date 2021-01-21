@@ -673,66 +673,88 @@ Axiom Q_G_buf2_43_init :
   forall (t:addr -> Init.Datatypes.bool), cinits t ->
   is_init_range t (shift (global 44%Z) 0%Z) 30000%Z.
 
-Open Scope Z_scope.
-Require Import Lia.
-Lemma double_shift: forall p i j, shift (shift p i) j = shift p (i + j).
-Proof.
-intros.
-destruct p.
-unfold shift.
-unfold base.
-unfold offset.
-rewrite Z.add_assoc.
-trivial.
-Qed.
-
-
 (* Why3 goal *)
 Theorem wp_goal :
   let a := global 42%Z in
   let a1 := global 44%Z in
   forall (t:Numbers.BinNums.Z -> Numbers.BinNums.Z)
     (t1:addr -> Numbers.BinNums.Z) (t2:addr -> Numbers.BinNums.Z)
-    (t3:addr -> Numbers.BinNums.Z) (a2:addr) (i:Numbers.BinNums.Z)
-    (i1:Numbers.BinNums.Z) (i2:Numbers.BinNums.Z),
-  let x := (2%Z * i2)%Z in
-  let a3 := shift a2 0%Z in
-  let x1 := ZArith.BinInt.Z.quot i2 2%Z in
+    (t3:addr -> Numbers.BinNums.Z) (t4:addr -> Numbers.BinNums.Z)
+    (t5:addr -> Numbers.BinNums.Z) (t6:addr -> Numbers.BinNums.Z)
+    (t7:addr -> Numbers.BinNums.Z) (t8:addr -> Numbers.BinNums.Z)
+    (t9:addr -> Numbers.BinNums.Z) (t10:addr -> Numbers.BinNums.Z) (a2:addr)
+    (i:Numbers.BinNums.Z) (i1:Numbers.BinNums.Z) (i2:Numbers.BinNums.Z)
+    (i3:Numbers.BinNums.Z),
+  let x := (2%Z * i3)%Z in
+  let x1 := ZArith.BinInt.Z.quot i3 2%Z in
   let x2 := to_uint32 x1 in
+  let x3 := to_uint32 (i + x2)%Z in
+  let x4 := to_uint32 (i3 + ((-1%Z)%Z * x2)%Z)%Z in
+  let x5 := (x2 + x4)%Z in
+  let x6 := to_uint32 (i1 + x4)%Z in
+  let x7 := (2%Z * x2)%Z in
+  let x8 := (2%Z * x4)%Z in
+  let a3 := shift a2 0%Z in
   let a4 := shift a i in
   let a5 := shift a1 i1 in
-  let a6 := havoc t3 t1 a4 x2 in
+  let a6 := havoc t10 t1 a4 x2 in
   let a7 := shift a2 x2 in
-  let x3 := to_uint32 (i2 + ((-1%Z)%Z * x2)%Z)%Z in
-  let a8 := havoc t2 a6 a5 x3 in
-  ~ (i2 = 2%Z) -> ((region (base a2)) <= 0%Z)%Z -> (2%Z <= i2)%Z ->
-  ((i + i2)%Z <= 30000%Z)%Z -> ((i1 + x)%Z <= 30000%Z)%Z ->
-  is_sint32_chunk t1 -> linked t -> is_uint32 i2 -> is_uint32 i1 ->
-  is_uint32 i -> valid_rw t a3 i2 -> valid_rd t a3 x2 ->
-  P_same_array t1 t1 a2 a2 x1 -> valid_rw t a4 x2 -> separated a3 i2 a4 i2 ->
-  separated a3 i2 a5 x -> separated a3 x2 a4 x2 -> is_sint32_chunk a6 ->
-  P_same_array t1 t1 a7 (shift a2 x1) (i2 + ((-1%Z)%Z * x1)%Z)%Z ->
-  valid_rd t a7 x3 -> valid_rw t a5 x3 -> separated a7 x3 a5 x3 ->
-  is_sint32_chunk a8 -> P_same_array a8 a8 a2 a4 x2 ->
-  (forall (i3:Numbers.BinNums.Z), (0%Z <= i3)%Z -> (i3 < x2)%Z ->
-   ((a6 (shift a (i + i3)%Z)) = (a6 (shift a2 i3)))) ->
-  (forall (i3:Numbers.BinNums.Z), (0%Z <= i3)%Z -> (i3 < x3)%Z ->
-   ((a8 (shift a2 (i3 + x2)%Z)) = (a8 (shift a1 (i1 + i3)%Z)))) ->
-  P_same_array a8 a8 a7 a5 x3.
-(* Why3 intros a a1 t t1 t2 t3 a2 i i1 i2 x a3 x1 x2 a4 a5 a6 a7 x3 a8 h1 h2
-        h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21
-        h22 h23 h24 h25 h26. *)
+  let a8 := havoc t9 a6 a5 x4 in
+  let a9 := shift a x3 in
+  let a10 := shift a1 x6 in
+  let a11 := havoc t6 (havoc t7 (havoc t8 a8 a4 x2) a10 x7) a9 x2 in
+  let a12 := havoc t3 (havoc t4 (havoc t5 a11 a5 x4) a10 x8) a9 x4 in
+  let a13 := havoc t2 a12 a3 x5 in
+  ~ (i3 = 2%Z) -> ((region (base a2)) <= 0%Z)%Z -> (2%Z <= i3)%Z ->
+  ((i + i3)%Z <= 30000%Z)%Z -> ((i1 + x)%Z <= 30000%Z)%Z ->
+  ((x2 + x3)%Z <= 30000%Z)%Z -> ((x3 + x4)%Z <= 30000%Z)%Z ->
+  (x5 <= 4294967295%Z)%Z -> ((x6 + x7)%Z <= 30000%Z)%Z ->
+  ((x6 + x8)%Z <= 30000%Z)%Z -> is_sint32_chunk t1 -> linked t ->
+  is_uint32 i3 -> is_uint32 i1 -> is_uint32 i -> is_sint32 i2 ->
+  valid_rw t a3 i3 -> valid_rd t a3 x2 -> P_same_array t1 t1 a2 a2 x1 ->
+  valid_rd t a4 x2 -> valid_rw t a4 x2 -> separated a3 i3 a4 i3 ->
+  separated a3 i3 a5 x -> separated a3 x2 a4 x2 -> is_sint32_chunk a6 ->
+  P_same_array t1 t1 a7 (shift a2 x1) (i3 + ((-1%Z)%Z * x1)%Z)%Z ->
+  valid_rd t a5 x4 -> valid_rd t a7 x4 -> valid_rw t a5 x4 ->
+  separated a7 x4 a5 x4 -> is_sint32_chunk a8 -> valid_rw t a3 x5 ->
+  separated a4 x2 a9 x2 -> separated a3 x5 a4 x2 -> separated a3 x5 a5 x4 ->
+  P_permutation a8 t1 a2 a4 x2 -> P_permutation a8 t1 a7 a5 x4 ->
+  P_same_array a8 a8 a2 a4 x2 -> P_same_array a8 a8 a7 a5 x4 ->
+  separated a5 x4 a10 x8 -> is_sint32_chunk a11 -> P_sorted a11 a4 x2 ->
+  P_permutation a11 a8 a2 a4 x2 -> P_permutation a11 a8 a4 a4 x2 ->
+  P_permutation a11 a8 a7 a5 x4 -> is_sint32_chunk a12 ->
+  P_sorted a12 a4 x2 -> P_sorted a12 a5 x4 ->
+  P_permutation a12 a8 a4 a4 x2 -> P_permutation a12 a8 a5 a5 x4 ->
+  P_permutation a12 a11 a4 a4 x2 -> P_permutation a12 a11 a5 a5 x4 ->
+  P_same_array a12 a8 a4 a2 x2 -> P_same_array a12 a8 a5 a7 x4 ->
+  P_same_array a12 a11 a4 a4 x2 -> is_sint32_chunk a13 ->
+  P_count_combine a12 a2 x2 a7 x4 a2 -> P_count_combine a12 a4 x2 a5 x4 a2 ->
+  P_sorted a13 a2 x5 -> P_same_array a13 a12 a4 a4 x2 ->
+  P_same_array a13 a12 a5 a5 x4 -> P_count_combine a13 a4 x2 a5 x4 a2 ->
+  (forall (i4:Numbers.BinNums.Z), (0%Z <= i4)%Z -> (i4 < x2)%Z ->
+   ((a6 (shift a (i + i4)%Z)) = (a6 (shift a2 i4)))) ->
+  (forall (i4:Numbers.BinNums.Z), (0%Z <= i4)%Z -> (i4 < x4)%Z ->
+   ((a8 (shift a2 (i4 + x2)%Z)) = (a8 (shift a1 (i1 + i4)%Z)))) ->
+  (forall (i4:Numbers.BinNums.Z), is_sint32 i4 ->
+   (((L_count_elem a12 i4 a4 x2) + (L_count_elem a12 i4 a5 x4))%Z =
+    (L_count_elem a12 i4 a2 i3))) ->
+  (forall (i4:Numbers.BinNums.Z), is_sint32 i4 ->
+   (((L_count_elem a13 i4 a4 x2) + (L_count_elem a13 i4 a5 x4))%Z =
+    (L_count_elem a13 i4 a2 i3))) ->
+  (forall (i4:Numbers.BinNums.Z), is_sint32 i4 ->
+   (((L_count_elem a13 i4 a4 x2) + (L_count_elem a13 i4 a5 x4))%Z =
+    ((L_count_elem a12 i4 a4 x2) + (L_count_elem a12 i4 a5 x4))%Z)) ->
+  ((L_count_elem a13 i2 a2 i3) = (L_count_elem a12 i2 a2 i3)).
 Proof.
-intros a a1 t t1 t2 t3 a2 i i1 i2 x a3 x1 x2 a4 a5 a6 a7 x3 a8 h1 h2
-        h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21
-        h22 h23 h24 h25 h26.
-unfold P_same_array in *.
-intros idx idx_ge_0 idx_bounded.
-unfold a7.
-unfold a5.
-repeat rewrite double_shift.
-rewrite Z.add_comm.
-apply h26; assumption.
+intros a a1 t t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 a2 i i1 i2 i3 x x1 x2 x3 x4 x5
+x6 x7 x8 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 h1 h2 h3 h4 h5 h6 h7 h8 h9 h10
+h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23 h24 h25 h26 h27 h28 h29
+h30 h31 h32 h33 h34 h35 h36 h37 h38 h39 h40 h41 h42 h43 h44 h45 h46 h47 h48
+h49 h50 h51 h52 h53 h54 h55 h56 h57 h58 h59 h60 h61 h62 h63 h64 h65 h66 h67.
+intros.
+rewrite <- h66; try assumption.
+rewrite h67; try assumption.
+apply h65; assumption.
 
 Qed.
 

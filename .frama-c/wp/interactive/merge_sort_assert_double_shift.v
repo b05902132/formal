@@ -316,13 +316,6 @@ Axiom addr_of_int_bijection :
 Axiom addr_of_null : ((int_of_addr null) = 0%Z).
 
 (* Why3 assumption *)
-Definition P_sorted (Mint:addr -> Numbers.BinNums.Z) (arr:addr)
-    (len:Numbers.BinNums.Z) : Prop :=
-  forall (i:Numbers.BinNums.Z) (i1:Numbers.BinNums.Z), (0%Z <= i)%Z ->
-  (i <= i1)%Z -> (i1 < len)%Z ->
-  ((Mint (shift arr i)) <= (Mint (shift arr i1)))%Z.
-
-(* Why3 assumption *)
 Definition is_bool (x:Numbers.BinNums.Z) : Prop := (x = 0%Z) \/ (x = 1%Z).
 
 (* Why3 assumption *)
@@ -597,31 +590,18 @@ Definition P_same_array (Mint:addr -> Numbers.BinNums.Z)
   forall (i:Numbers.BinNums.Z), (0%Z <= i)%Z -> (i < e)%Z ->
   ((Mint1 (shift arr1 i)) = (Mint (shift arr2 i))).
 
-Axiom Q_adj_sorted :
-  forall (Mint:addr -> Numbers.BinNums.Z) (arr:addr) (i:Numbers.BinNums.Z)
-    (len:Numbers.BinNums.Z),
-  let x := Mint (shift arr i) in
-  let x1 := Mint (shift arr ((-1%Z)%Z + i)%Z) in
-  is_sint32_chunk Mint -> is_sint32 x -> is_sint32 x1 ->
-  ((0%Z < i)%Z -> (i < len)%Z -> (x1 <= x)%Z) -> P_sorted Mint arr len.
+(* Why3 assumption *)
+Definition P_sorted (Mint:addr -> Numbers.BinNums.Z) (arr:addr)
+    (len:Numbers.BinNums.Z) : Prop :=
+  forall (i:Numbers.BinNums.Z) (i1:Numbers.BinNums.Z), (0%Z <= i)%Z ->
+  (i <= i1)%Z -> (i1 < len)%Z ->
+  ((Mint (shift arr i)) <= (Mint (shift arr i1)))%Z.
 
-Axiom Q_count_combine_append_1 :
-  forall (Mint:addr -> Numbers.BinNums.Z) (a1:addr) (a2:addr) (out:addr)
-    (size1:Numbers.BinNums.Z) (size2:Numbers.BinNums.Z),
-  let x := Mint (shift out (size1 + size2)%Z) in
-  let x1 := Mint (shift a1 size1) in
-  (x = x1) -> is_sint32_chunk Mint -> is_sint32 x1 ->
-  P_count_combine Mint a1 size1 a2 size2 out -> is_sint32 x ->
-  P_count_combine Mint a1 (1%Z + size1)%Z a2 size2 out.
-
-Axiom Q_count_combine_append_2 :
-  forall (Mint:addr -> Numbers.BinNums.Z) (a1:addr) (a2:addr) (out:addr)
-    (size1:Numbers.BinNums.Z) (size2:Numbers.BinNums.Z),
-  let x := Mint (shift out (size1 + size2)%Z) in
-  let x1 := Mint (shift a2 size2) in
-  (x = x1) -> is_sint32_chunk Mint -> is_sint32 x1 ->
-  P_count_combine Mint a1 size1 a2 size2 out -> is_sint32 x ->
-  P_count_combine Mint a1 size1 a2 (1%Z + size2)%Z out.
+Axiom Q_count_combine_id :
+  forall (Mint:addr -> Numbers.BinNums.Z) (a1:addr) (len1:Numbers.BinNums.Z)
+    (len2:Numbers.BinNums.Z),
+  is_sint32_chunk Mint ->
+  P_count_combine Mint a1 len1 (shift a1 len1) len2 a1.
 
 Axiom Q_perm_eq :
   forall (Mint:addr -> Numbers.BinNums.Z) (Mint1:addr -> Numbers.BinNums.Z)
@@ -645,8 +625,6 @@ Definition P_array_elem_swapped (Mint:addr -> Numbers.BinNums.Z)
   (forall (i:Numbers.BinNums.Z), ~ (p = i) -> ~ (q = i) -> (0%Z <= i)%Z ->
    (i < len)%Z -> ((Mint1 a) = (Mint (shift arr i)))).
 
-Axiom Q_shift_twice : True.
-
 Axiom Q_perm_swap :
   forall (Mint:addr -> Numbers.BinNums.Z) (Mint1:addr -> Numbers.BinNums.Z)
     (arr1:addr) (e:Numbers.BinNums.Z) (p:Numbers.BinNums.Z)
@@ -663,6 +641,17 @@ Axiom Q_perm_trans :
   P_permutation Mint Mint1 arr2 arr3 e ->
   P_permutation Mint1 Mint2 arr1 arr2 e ->
   P_permutation Mint Mint2 arr1 arr3 e.
+
+Axiom Q_permutation_count_combine :
+  forall (Mint:addr -> Numbers.BinNums.Z) (Mint1:addr -> Numbers.BinNums.Z)
+    (a1:addr) (b1:addr) (out1:addr) (a2:addr) (b2:addr) (out2:addr)
+    (len_a:Numbers.BinNums.Z) (len_b:Numbers.BinNums.Z),
+  is_sint32_chunk Mint -> is_sint32_chunk Mint1 ->
+  P_permutation Mint Mint1 a1 a2 len_a ->
+  P_permutation Mint Mint1 b1 b2 len_b ->
+  P_count_combine Mint1 a1 len_a b1 len_b out1 ->
+  P_permutation Mint Mint1 out1 out2 (len_a + len_b)%Z ->
+  P_count_combine Mint a2 len_a b2 len_b out2.
 
 Axiom Q_G_buf1_41_region : ((region 42%Z) = 0%Z).
 
@@ -708,40 +697,42 @@ Theorem wp_goal :
     (i1:Numbers.BinNums.Z) (i2:Numbers.BinNums.Z),
   let x := (2%Z * i2)%Z in
   let a3 := shift a2 0%Z in
-  let x1 := to_uint32 (ZArith.BinInt.Z.quot i2 2%Z) in
+  let x1 := ZArith.BinInt.Z.quot i2 2%Z in
+  let x2 := to_uint32 x1 in
   let a4 := shift a i in
   let a5 := shift a1 i1 in
-  let a6 := havoc t3 t1 a4 x1 in
-  let a7 := shift a2 x1 in
-  let x2 := to_uint32 (i2 + ((-1%Z)%Z * x1)%Z)%Z in
-  let a8 := havoc t2 a6 a5 x2 in
+  let a6 := havoc t3 t1 a4 x2 in
+  let a7 := shift a2 x2 in
+  let x3 := to_uint32 (i2 + ((-1%Z)%Z * x2)%Z)%Z in
+  let a8 := havoc t2 a6 a5 x3 in
   ~ (i2 = 2%Z) -> ((region (base a2)) <= 0%Z)%Z -> (2%Z <= i2)%Z ->
   ((i + i2)%Z <= 30000%Z)%Z -> ((i1 + x)%Z <= 30000%Z)%Z ->
   is_sint32_chunk t1 -> linked t -> is_uint32 i2 -> is_uint32 i1 ->
-  is_uint32 i -> valid_rw t a3 i2 -> valid_rd t a3 x1 -> valid_rw t a4 x1 ->
-  separated a3 i2 a4 i2 -> separated a3 i2 a5 x -> separated a3 x1 a4 x1 ->
-  is_sint32_chunk a6 -> valid_rd t a7 x2 -> valid_rw t a5 x2 ->
-  separated a7 x2 a5 x2 -> is_sint32_chunk a8 ->
-  P_same_array a8 a8 a2 a4 x1 ->
-  (forall (i3:Numbers.BinNums.Z), (0%Z <= i3)%Z -> (i3 < x1)%Z ->
-   ((a6 (shift a (i + i3)%Z)) = (a6 (shift a2 i3)))) ->
+  is_uint32 i -> valid_rw t a3 i2 -> valid_rd t a3 x2 ->
+  P_same_array t1 t1 a2 a2 x1 -> valid_rw t a4 x2 -> separated a3 i2 a4 i2 ->
+  separated a3 i2 a5 x -> separated a3 x2 a4 x2 -> is_sint32_chunk a6 ->
+  P_same_array t1 t1 a7 (shift a2 x1) (i2 + ((-1%Z)%Z * x1)%Z)%Z ->
+  valid_rd t a7 x3 -> valid_rw t a5 x3 -> separated a7 x3 a5 x3 ->
+  is_sint32_chunk a8 -> P_same_array a8 a8 a2 a4 x2 ->
   (forall (i3:Numbers.BinNums.Z), (0%Z <= i3)%Z -> (i3 < x2)%Z ->
-   ((a8 (shift a2 (i3 + x1)%Z)) = (a8 (shift a1 (i1 + i3)%Z)))) ->
-  P_same_array a8 a8 a7 a5 x2.
-(* Why3 intros a a1 t t1 t2 t3 a2 i i1 i2 x a3 x1 a4 a5 a6 a7 x2 a8 h1 h2 h3
-        h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22
-        h23 h24. *)
+   ((a6 (shift a (i + i3)%Z)) = (a6 (shift a2 i3)))) ->
+  (forall (i3:Numbers.BinNums.Z), (0%Z <= i3)%Z -> (i3 < x3)%Z ->
+   ((a8 (shift a2 (i3 + x2)%Z)) = (a8 (shift a1 (i1 + i3)%Z)))) ->
+  P_same_array a8 a8 a7 a5 x3.
+(* Why3 intros a a1 t t1 t2 t3 a2 i i1 i2 x a3 x1 x2 a4 a5 a6 a7 x3 a8 h1 h2
+        h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21
+        h22 h23 h24 h25 h26. *)
 Proof.
-intros a a1 t t1 t2 t3 a2 i i1 i2 x a3 x1 a4 a5 a6 a7 x2 a8 h1 h2 h3
-        h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22
-        h23 h24. 
-unfold P_same_array.
+intros a a1 t t1 t2 t3 a2 i i1 i2 x a3 x1 x2 a4 a5 a6 a7 x3 a8 h1 h2
+        h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21
+        h22 h23 h24 h25 h26.
+unfold P_same_array in *.
 intros idx idx_ge_0 idx_bounded.
 unfold a7.
 unfold a5.
 repeat rewrite double_shift.
 rewrite Z.add_comm.
-apply h24; assumption.
+apply h26; assumption.
 
 Qed.
 

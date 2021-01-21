@@ -8,6 +8,14 @@ size_t buf1_used;
 int buf2[BUF_SIZE];
 size_t buf2_used;
 
+/*@
+  lemma permutation_count_combine{L1, L2}:
+    \forall int *a1, *b1, *out1, *a2, *b2, *out2, integer len_a, len_b;
+     permutation{L1, L2}(a1, a2, len_a) && permutation{L1, L2}(b1, b2, len_b)
+     && permutation{L1, L2}(out1, out2, len_a + len_b) && count_combine{L1}(a1, len_a, b1, len_b, out1)
+     ==> count_combine{L2}(a2, len_a, b2, len_b, out2);
+*/
+
 void merge_sort(int *arr, size_t len)
 {
     if (len < 2) {
@@ -67,23 +75,46 @@ void merge_sort(int *arr, size_t len)
     //@ assert permutation{before_recursion1, Here}(local_buf_left, local_buf_left, left_len);
     //@ assert permutation{before_recursion1, Here}(local_buf_right, local_buf_right, right_len);
 
-    //@ assert permutation{before_recursion1, Here}(left_arr, local_buf_left, left_len);
-    //@ assert permutation{before_recursion1, Here}(right_arr, local_buf_right, right_len);
+    //@ assert same_array{before_recursion1, Here}(local_buf_left, arr, left_len);
+    //@ assert same_array{before_recursion1, Here}(local_buf_right, arr + left_len, right_len);
 
-    //@ assert permutation{Pre, Here}(arr, local_buf_left, len/2);
-    //@ assert permutation{Pre, Here}(arr + len/2 , local_buf_right, len - len/2);
-
-    //@ assert count_combine{Pre}(arr, len/2, arr + len/2, len - len/2, arr);
-
-    //TODO : Use preceding three assersions to prove the following assertion.
+    //@ assert count_combine(arr, left_len, arr + left_len, right_len, arr);
 
     //@ assert count_combine(local_buf_left, left_len, local_buf_right, right_len, arr);
 
+    //@ ghost before_merge: ;
     merge(local_buf_left, left_len, local_buf_right, right_len, arr);
 
+    //@ assert same_array{before_merge,Here}(local_buf_left, local_buf_left, left_len);
+    //@ assert same_array{before_merge,Here}(local_buf_right, local_buf_right, right_len);
     //@ assert count_combine(local_buf_left, left_len, local_buf_right, right_len, arr);
-    //TODO Use count_combine to prove the following:
-    //@ assert permutation{Pre, Here}(arr, arr, len);
+
+    /* TODO: clear the redundent assertions */
+    /*@ assert \forall int elem;
+        count_elem{before_merge}(elem, arr, len)
+        ==
+        count_elem{before_merge}(elem, local_buf_left, left_len)
+        + count_elem{before_merge}(elem, local_buf_right, right_len);
+    */
+    /*@ assert \forall int elem;
+        count_elem{before_merge}(elem, local_buf_left, left_len)
+        + count_elem{before_merge}(elem, local_buf_right, right_len)
+        ==
+        count_elem(elem, local_buf_left, left_len)
+        + count_elem(elem, local_buf_right, right_len);
+    */
+    /*@
+       assert \forall int elem;
+        count_elem(elem, local_buf_left, left_len)
+        + count_elem(elem, local_buf_right, right_len)
+        == count_elem(elem, arr, len);
+    */
+    /*@ assert YUNOPROVETHIS: \forall int elem;
+        count_elem{before_merge}(elem, arr, len)
+        == count_elem(elem, arr, len);
+    */
+    //@ assert permutation{before_merge, Here}(arr, arr, len);
+    //@ assert same_array{Pre, before_merge}(arr, arr, len);
 
     buf1_used -= len/2;
     buf2_used -= len - len/2;
