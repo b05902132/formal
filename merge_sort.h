@@ -38,8 +38,9 @@ extern size_t buf2_used;
   lemma perm_eq{L1, L2}: \forall int *arr1, int *arr2, integer e;
     same_array{L1, L2}(arr1, arr2, e) ==> permutation{L1, L2}(arr1, arr2, e);
 
-  lemma perm_swap{L1, L2}: \forall int *arr1, integer e, p, q;
-    array_elem_swapped{L1, L2}(arr1, e, p, q) ==> permutation{L1, L2}(arr1, arr1, e);
+  // Swapping in arbitary position is unecessary for proving merge sort.
+  lemma perm_swap{L1, L2}: \forall int *arr1;
+    array_elem_swapped{L1, L2}(arr1, 2, 0, 1) ==> permutation{L1, L2}(arr1, arr1, 2);
 
   lemma perm_trans{L1, L2, L3} : \forall int *arr1, int *arr2, int *arr3, integer e;
     permutation{L1, L2}(arr1, arr2, e) && permutation{L2, L3}(arr2, arr3, e)

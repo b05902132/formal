@@ -27,8 +27,8 @@ void merge_sort(int *arr, size_t len)
             arr[0] = arr[1];
             arr[1] = tmp;
             //@ assert array_elem_swapped{Pre, Here}(arr, 2, 0, 1);
+            //@ assert permutation{Pre, Here}(arr, arr, 2);
         }
-        //@ assert permutation{Pre, Here}(arr, arr, len);
         //@ assert sorted(arr, len);
         return;
     }
