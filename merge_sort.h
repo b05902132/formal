@@ -51,7 +51,7 @@ extern size_t buf2_used;
 
 /*@
   predicate sorted(int *arr, integer len) =
-    \forall integer i, j; 0 <= i <= j < len  ==> arr[i] <= arr[j];
+    \forall integer i; 0 <= i < len - 1  ==> arr[i] <= arr[i + 1];
 */
 
 
