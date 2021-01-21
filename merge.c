@@ -35,9 +35,8 @@ void merge(const int *arr1, size_t len1, const int *arr2, size_t len2, int *out)
             out[i_out] = arr2[i_2];
             //@ assert i_out-1 > 0 ==> out[i_out - 1] <= out[i_out];
             //@ assert sorted(out, i_out + 1);
-            /* The auto prover are not smart enough to prove loop1_append_i2;
-             * they require some aid to prove that the counts are not affected by this assignment,
-             * hence the assertions about count_unchanged.
+            /* The auto prover require some aid to prove theorems about element_couunt,
+             * e.g. loop1_append_i2; hence the assertions about permutation.
              * However, they cannot be autoproved without the first 3 assertions...
              */
             //@ assert same_array{LoopCurrent, Here}(arr1, arr1, i_1);
@@ -52,8 +51,10 @@ void merge(const int *arr1, size_t len1, const int *arr2, size_t len2, int *out)
             i_out += 1;
             //@ assert bound_aid_arr2: i_2 < len2 ==> out[i_1 + i_2 - 1] <= arr2[i_2];
         } else {
-            //@ assert i_out-1 > 0 ==> out[i_out - 1] <= arr1[i_1];
             out[i_out] = arr1[i_1];
+            //@ assert i_out-1 > 0 ==> out[i_out - 1] <= out[i_out];
+            //@ assert sorted(out, i_out + 1);
+
             //@ assert same_array{LoopCurrent, Here}(arr1, arr1, i_1);
             //@ assert same_array{LoopCurrent, Here}(arr2, arr2, i_2);
             //@ assert same_array{LoopCurrent, Here}(out, out, i_1 + i_2);
