@@ -593,14 +593,13 @@ Definition P_same_array (Mint:addr -> Numbers.BinNums.Z)
 (* Why3 assumption *)
 Definition P_sorted (Mint:addr -> Numbers.BinNums.Z) (arr:addr)
     (len:Numbers.BinNums.Z) : Prop :=
-  forall (i:Numbers.BinNums.Z) (i1:Numbers.BinNums.Z), (0%Z <= i)%Z ->
-  (i <= i1)%Z -> (i1 < len)%Z ->
-  ((Mint (shift arr i)) <= (Mint (shift arr i1)))%Z.
+  forall (i:Numbers.BinNums.Z), (0%Z <= i)%Z -> ((2%Z + i)%Z <= len)%Z ->
+  ((Mint (shift arr i)) <= (Mint (shift arr (1%Z + i)%Z)))%Z.
 
 Axiom Q_count_combine_id :
   forall (Mint:addr -> Numbers.BinNums.Z) (a1:addr) (len1:Numbers.BinNums.Z)
     (len2:Numbers.BinNums.Z),
-  is_sint32_chunk Mint ->
+  (0%Z <= len1)%Z -> (0%Z <= len2)%Z -> is_sint32_chunk Mint ->
   P_count_combine Mint a1 len1 (shift a1 len1) len2 a1.
 
 Axiom Q_perm_eq :
@@ -618,20 +617,19 @@ Definition P_swapped (Mint:addr -> Numbers.BinNums.Z)
 Definition P_array_elem_swapped (Mint:addr -> Numbers.BinNums.Z)
     (Mint1:addr -> Numbers.BinNums.Z) (arr:addr) (len:Numbers.BinNums.Z)
     (p:Numbers.BinNums.Z) (q:Numbers.BinNums.Z) : Prop :=
-  let a := shift arr p in
-  (((((~ (q = p) /\ (0%Z <= p)%Z) /\ (p < len)%Z) /\ (0%Z <= q)%Z) /\
-    (q < len)%Z) /\
-   P_swapped Mint Mint1 a (shift arr q)) /\
-  (forall (i:Numbers.BinNums.Z), ~ (p = i) -> ~ (q = i) -> (0%Z <= i)%Z ->
-   (i < len)%Z -> ((Mint1 a) = (Mint (shift arr i)))).
+  ((((0%Z <= p)%Z /\ (p < q)%Z) /\ (q < len)%Z) /\
+   P_swapped Mint Mint1 (shift arr p) (shift arr q)) /\
+  (forall (i:Numbers.BinNums.Z),
+   let a := shift arr i in
+   ~ (p = i) -> ~ (q = i) -> (0%Z <= i)%Z -> (i < len)%Z ->
+   ((Mint1 a) = (Mint a))).
 
 Axiom Q_perm_swap :
   forall (Mint:addr -> Numbers.BinNums.Z) (Mint1:addr -> Numbers.BinNums.Z)
-    (arr1:addr) (e:Numbers.BinNums.Z) (p:Numbers.BinNums.Z)
-    (q:Numbers.BinNums.Z),
+    (arr1:addr),
   is_sint32_chunk Mint -> is_sint32_chunk Mint1 ->
-  P_array_elem_swapped Mint Mint1 arr1 e p q ->
-  P_permutation Mint Mint1 arr1 arr1 e.
+  P_array_elem_swapped Mint Mint1 arr1 2%Z 0%Z 1%Z ->
+  P_permutation Mint Mint1 arr1 arr1 2%Z.
 
 Axiom Q_perm_trans :
   forall (Mint:addr -> Numbers.BinNums.Z) (Mint1:addr -> Numbers.BinNums.Z)
@@ -726,12 +724,17 @@ Proof.
 intros a a1 t t1 t2 t3 a2 i i1 i2 x a3 x1 x2 a4 a5 a6 a7 x3 a8 h1 h2
         h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21
         h22 h23 h24 h25 h26.
+
 unfold P_same_array in *.
 intros idx idx_ge_0 idx_bounded.
+(* current goal: a8 (shift a7 idx) = a8 (shift a5 idx) *)
 unfold a7.
 unfold a5.
 repeat rewrite double_shift.
 rewrite Z.add_comm.
+(* There's only one applicable assumption.
+   Its type looks like this:
+   forall i : int, ... -> a8 (shift a2 (i3 + x2)) = a8 (shift a1 (i1 + i3)) *)
 apply h26; assumption.
 
 Qed.

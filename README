@@ -1,0 +1,38 @@
+b05902132 林敬文
+
+本次project要證明merge sort，為了證明方便拆成兩個function，merge_sort跟merge，
+放在不同檔案，這樣prover可以不用看到一些無關的敘述。
+function的precondition跟postcondition都放在merge_sort.h。
+
+證明時有使用到Coq，使用的script放在/coq_script中，檔名跟assertion的名字一致。
+為了方便起見，這些script我也放在/.frama_c裡面，wp會自己到這個資料夾找coq的script。
+
+證明時請使用-wp -wp-rte -wp-prover=coq,alt-ergo -wp-timeout=20。
+在證明某些變數沒有改變時花的時間異常地久，請稍候。
+
+
+Coq的證明大多有寫註解，難懂的證明會寫的比較詳細。
+有些指令用到的地方比較多就統一列在這裡。
+
+  lia可以用來自動證明有關整數的定理，在比較舊的Coq中稱為omega，
+  需要Import才能用。
+
+  natlike_ind顧名思義就是用來在整數上做自然數的數學歸納法，
+  如果想證明的定理是0 <= z -> P z，則可以apply natlike_ind P。
+  有的時候P會很長，看起來就會很醜，不過我找不到要怎麼自動化。
+  （有時候apply natlike_ind可以自動偵測出P是啥，
+    不過這次有用到的地方沒有一個是有辦法偵測出來的。)
+
+
+
+
+證明進度：
+   merge_sort完全證明完畢。
+   merge證明了兩陣列均不為空的時的第一個大迴圈。
+   此迴圈的invariant與function的postcondition一致。
+
+
+
+使用的工具版本：
+
+
